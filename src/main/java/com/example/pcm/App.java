@@ -1,6 +1,9 @@
 package com.example.pcm;
 
 import com.example.pcm.ui.BookManagementUI;
+import com.example.pcm.ui.LoginRegisterForm;
+
+import javax.swing.*;
 
 /**
  * Hello world!
@@ -9,6 +12,10 @@ import com.example.pcm.ui.BookManagementUI;
 public class App 
 {
     public static void main( String[] args ) {
-        new BookManagementUI();
+        SwingUtilities.invokeLater(() -> {
+            LoginRegisterForm form = new LoginRegisterForm();
+            form.setVisible(true);
+        });
+//        new BookManagementUI();
     }
 }
