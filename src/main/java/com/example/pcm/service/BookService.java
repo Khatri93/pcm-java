@@ -12,7 +12,7 @@ import java.util.List;
 
 public class BookService {
 
-    public static void addBook(Book book) throws SQLException {
+    public void addBook(Book book) throws SQLException {
         String sql = "INSERT INTO books (name, author, edition) VALUES (?, ?, ?)";
         try(Connection connection = DataSourceProvider.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -23,7 +23,7 @@ public class BookService {
         }
     }
 
-    public static void updateBook(Book book) throws SQLException {
+    public void updateBook(Book book) throws SQLException {
         String sql = "UPDATE books SET name = ?, author = ?, edition = ? WHERE id = ?";
         try(Connection connection = DataSourceProvider.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -35,7 +35,7 @@ public class BookService {
         }
     }
 
-    public static void deleteBook(int id) throws SQLException {
+    public void deleteBook(int id) throws SQLException {
         String sql = "DELETE FROM books WHERE id = ?";
         try(Connection connection = DataSourceProvider.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -44,7 +44,7 @@ public class BookService {
         }
     }
 
-    public static List<Book> getAllBooks() throws SQLException {
+    public List<Book> getAllBooks() throws SQLException {
         String sql = "SELECT * FROM books";
         List<Book> books = new ArrayList<>();
         try(Connection connection = DataSourceProvider.getConnection();

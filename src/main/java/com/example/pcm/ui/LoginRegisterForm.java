@@ -1,11 +1,11 @@
 package com.example.pcm.ui;
 
+import com.example.pcm.model.UserSession;
+import com.example.pcm.model.Users;
 import com.example.pcm.service.LoginRegisterService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.SQLException;
 
 public class LoginRegisterForm extends JFrame {
@@ -41,32 +41,28 @@ public class LoginRegisterForm extends JFrame {
         panel.add(roleComboBox);
 
         registerButton = new JButton("Register");
-        registerButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                registerUser();
-            }
-        });
+        registerButton.addActionListener(e -> registerUser());
         panel.add(registerButton);
 
         loginButton = new JButton("Login");
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                loginUser();
-            }
-        });
+        loginButton.addActionListener(e -> loginUser());
         panel.add(loginButton);
 
         add(panel);
+
+        // Center the window on the screen
+        setLocationRelativeTo(null);
     }
 
     private void registerUser() {
-//        LoginRegisterService registerService = new LoginRegisterService();
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-        String email = emailField.getText();
-        String role = (String) roleComboBox.getSelectedItem();
+        LoginRegisterService registerService = new LoginRegisterService();
+        Users users = new Users();
+        users.setUsername(usernameField.getText());
+        users.setPassword(new String(passwordField.getPassword()));
+        users.setEmail(emailField.getText());
+        users.setRole((String) roleComboBox.getSelectedItem());
         try {
-            LoginRegisterService.registerUser(username, password, email, role);
+            registerService.registerUser(users);
             JOptionPane.showMessageDialog(this, "User registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error registering user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -74,15 +70,21 @@ public class LoginRegisterForm extends JFrame {
     }
 
     private void loginUser() {
+        LoginRegisterService registerService = new LoginRegisterService();
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
-        boolean loggedIn = LoginRegisterService.loginUser(username, password);
-        if (!loggedIn) {
-            JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+
+        if (registerService.loginUser(username, password)) {
+            UserSession.getInstance().login(username);
+            JOptionPane.showMessageDialog(this, "Login successful!");
+            SwingUtilities.invokeLater(() -> {
+                BookManagementForm form = new BookManagementForm();
+                form.setVisible(true);
+            });
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid username or password.");
         }
-        JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        new BookManagementUI();
     }
+
 }
 

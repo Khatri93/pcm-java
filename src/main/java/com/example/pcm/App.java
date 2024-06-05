@@ -1,6 +1,5 @@
 package com.example.pcm;
 
-import com.example.pcm.ui.BookManagementUI;
 import com.example.pcm.ui.LoginRegisterForm;
 
 import javax.swing.*;
@@ -16,6 +15,5 @@ public class App
             LoginRegisterForm form = new LoginRegisterForm();
             form.setVisible(true);
         });
-//        new BookManagementUI();
     }
 }
