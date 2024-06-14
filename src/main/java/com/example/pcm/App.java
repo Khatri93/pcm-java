@@ -1,18 +1,16 @@
 package com.example.pcm;
 
-import com.example.pcm.ui.LoginRegisterForm;
+import com.example.pcm.ui.LoginForm;
 
 import javax.swing.*;
 
 /**
  * Hello world!
- *
  */
-public class App 
-{
-    public static void main( String[] args ) {
+public class App {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            LoginRegisterForm form = new LoginRegisterForm();
+            LoginForm form = new LoginForm();
             form.setVisible(true);
         });
     }

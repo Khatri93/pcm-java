@@ -1,6 +1,5 @@
 package com.example.pcm.ui;
 
-import com.example.pcm.model.UserSession;
 import com.example.pcm.model.Users;
 import com.example.pcm.service.LoginRegisterService;
 
@@ -8,7 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
 
-public class LoginRegisterForm extends JFrame {
+public class RegisterForm extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JTextField emailField;
@@ -16,13 +15,14 @@ public class LoginRegisterForm extends JFrame {
     private JButton registerButton;
     private JButton loginButton;
 
-    public LoginRegisterForm() {
-        setTitle("Login/Register Form");
+    public RegisterForm() {
+        setTitle("Register Form");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 2));
+        panel.setLayout(new GridLayout(6, 2));
 
         panel.add(new JLabel("Username:"));
         usernameField = new JTextField();
@@ -45,13 +45,10 @@ public class LoginRegisterForm extends JFrame {
         panel.add(registerButton);
 
         loginButton = new JButton("Login");
-        loginButton.addActionListener(e -> loginUser());
+        loginButton.addActionListener(e -> switchToLogin());
         panel.add(loginButton);
 
         add(panel);
-
-        // Center the window on the screen
-        setLocationRelativeTo(null);
     }
 
     private void registerUser() {
@@ -69,22 +66,10 @@ public class LoginRegisterForm extends JFrame {
         }
     }
 
-    private void loginUser() {
-        LoginRegisterService registerService = new LoginRegisterService();
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        if (registerService.loginUser(username, password)) {
-            UserSession.getInstance().login(username);
-            JOptionPane.showMessageDialog(this, "Login successful!");
-            SwingUtilities.invokeLater(() -> {
-                BookManagementForm form = new BookManagementForm();
-                form.setVisible(true);
-            });
-        } else {
-            JOptionPane.showMessageDialog(this, "Invalid username or password.");
-        }
+    private void switchToLogin() {
+        SwingUtilities.invokeLater(() -> {
+            new LoginForm().setVisible(true);
+        });
+        dispose();
     }
-
 }
-

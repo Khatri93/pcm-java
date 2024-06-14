@@ -14,8 +14,8 @@ public class BookService {
 
     public void addBook(Book book) throws SQLException {
         String sql = "INSERT INTO books (name, author, edition) VALUES (?, ?, ?)";
-        try(Connection connection = DataSourceProvider.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getName());
             statement.setString(2, book.getAuthor());
             statement.setString(3, book.getEdition());
@@ -25,8 +25,8 @@ public class BookService {
 
     public void updateBook(Book book) throws SQLException {
         String sql = "UPDATE books SET name = ?, author = ?, edition = ? WHERE id = ?";
-        try(Connection connection = DataSourceProvider.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getName());
             statement.setString(2, book.getAuthor());
             statement.setString(3, book.getEdition());
@@ -35,11 +35,11 @@ public class BookService {
         }
     }
 
-    public void deleteBook(int id) throws SQLException {
-        String sql = "DELETE FROM books WHERE id = ?";
-        try(Connection connection = DataSourceProvider.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, id);
+    public void deleteBookByName(String name) throws SQLException {
+        String sql = "DELETE FROM books WHERE name = ?";
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
             statement.executeUpdate();
         }
     }
@@ -47,8 +47,8 @@ public class BookService {
     public List<Book> getAllBooks() throws SQLException {
         String sql = "SELECT * FROM books";
         List<Book> books = new ArrayList<>();
-        try(Connection connection = DataSourceProvider.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Book book = new Book();
@@ -61,4 +61,14 @@ public class BookService {
             return books;
         }
     }
+
+    public void deleteBook(int id) throws SQLException {
+        String sql = "DELETE FROM books WHERE id = ?";
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.executeUpdate();
+        }
+    }
 }
+
