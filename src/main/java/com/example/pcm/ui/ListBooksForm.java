@@ -5,7 +5,9 @@ import com.example.pcm.model.UserSession;
 import com.example.pcm.service.BookService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
@@ -15,15 +17,17 @@ public class ListBooksForm extends JFrame {
     private JTable bookTable;
     private DefaultTableModel tableModel;
     private JButton deleteButton;
-    private JButton logoutButton;
     private JButton updateButton;
-    private JButton refreshButton; // New refresh button
+    private JButton refreshButton;
+    private JButton logoutButton;
 
     public ListBooksForm() {
         setTitle("List of Books");
-        setSize(600, 400);
+        setSize(800, 600); // Increased size for better layout
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(true); // Allow resizing
+        setBackground(new Color(240, 248, 255)); // Alice Blue background
 
         bookService = new BookService();
 
@@ -33,47 +37,106 @@ public class ListBooksForm extends JFrame {
 
     private void initComponents() {
         String[] columnNames = {"ID", "Name", "Author", "Edition"};
-        tableModel = new DefaultTableModel(columnNames, 0);
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Disable cell editing
+            }
+        };
+
         bookTable = new JTable(tableModel);
         bookTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        bookTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                bookTableMouseClicked(evt);
+        bookTable.setFont(new Font("Arial", Font.PLAIN, 14)); // Font for table cells
+        bookTable.setRowHeight(30); // Increase row height
+        bookTable.setGridColor(new Color(211, 211, 211)); // Light grey grid lines
+        bookTable.setShowVerticalLines(false); // Hide vertical lines for cleaner look
+        bookTable.setIntercellSpacing(new Dimension(0, 1)); // Adjust spacing between cells
+
+        // Alternate row colors for better readability
+        bookTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (row % 2 == 0) {
+                    c.setBackground(new Color(224, 255, 255)); // Light Cyan for even rows
+                } else {
+                    c.setBackground(Color.WHITE); // White for odd rows
+                }
+                return c;
             }
         });
+
+        // Table header customization
+        JTableHeader header = bookTable.getTableHeader();
+        header.setFont(new Font("Arial", Font.BOLD, 16));
+        header.setForeground(Color.WHITE);
+        header.setBackground(new Color(0, 120, 215)); // Blue header background
+        header.setPreferredSize(new Dimension(header.getWidth(), 40)); // Increase header height
 
         JScrollPane scrollPane = new JScrollPane(bookTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        JPanel buttonPanel = new JPanel(new BorderLayout());
+        // Button panel customization
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 5, 10, 10));
+        buttonPanel.setBackground(new Color(245, 245, 245)); // Light grey panel background
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Padding around the panel
 
         // Refresh Button
-        refreshButton = new JButton("Refresh");
+        refreshButton = createButton("Refresh", new Color(60, 179, 113)); // Medium Sea Green
         refreshButton.addActionListener(e -> loadBookData());
-        buttonPanel.add(refreshButton, BorderLayout.NORTH); // Place refresh button at the top
+        buttonPanel.add(refreshButton);
 
-        deleteButton = new JButton("Delete Selected Book");
+        // Delete Button
+        deleteButton = createButton("Delete Selected Book", new Color(255, 69, 0)); // Red
         deleteButton.addActionListener(e -> deleteSelectedBook());
-        buttonPanel.add(deleteButton, BorderLayout.WEST);
+        buttonPanel.add(deleteButton);
 
         // Update Button
-        updateButton = new JButton("Update Book");
+        updateButton = createButton("Update Book", new Color(70, 130, 180)); // Steel Blue
         updateButton.addActionListener(e -> updateSelectedBook());
-        buttonPanel.add(updateButton, BorderLayout.CENTER);
+        buttonPanel.add(updateButton);
+
+        // Back Button
+        JButton backButton = createButton("Back", new Color(123, 104, 238)); // Medium Slate Blue
+        backButton.addActionListener(e -> {
+            new BookManagementForm().setVisible(true);
+            dispose();
+        });
+        buttonPanel.add(backButton);
 
         // Logout Button
-        logoutButton = new JButton("Logout");
+        logoutButton = createButton("Logout", new Color(255, 69, 0)); // Red
         logoutButton.addActionListener(e -> logout());
-        buttonPanel.add(logoutButton, BorderLayout.EAST);
-
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> {
-            new BookManagementForm().setVisible(true); // Open BookManagementForm
-            dispose(); // Dispose current form
-        });
-        buttonPanel.add(backButton, BorderLayout.SOUTH);
+        buttonPanel.add(logoutButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private JButton createButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color.darker(), 2),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+        button.setPreferredSize(new Dimension(150, 40)); // Preferred size to ensure visibility
+
+        // Adding hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(color.brighter());
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(color);
+            }
+        });
+
+        return button;
     }
 
     void loadBookData() {
@@ -95,6 +158,11 @@ public class ListBooksForm extends JFrame {
     }
 
     private void deleteSelectedBook() {
+        if (!"Admin".equals(UserSession.getInstance().getRole())) {
+            JOptionPane.showMessageDialog(this, "Only admins can access this feature.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         int selectedRow = bookTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select a book to delete.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -112,6 +180,11 @@ public class ListBooksForm extends JFrame {
     }
 
     private void updateSelectedBook() {
+        if (!"Admin".equals(UserSession.getInstance().getRole())) {
+            JOptionPane.showMessageDialog(this, "Only admins can access this feature.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         int selectedRow = bookTable.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please select a book to update.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -125,12 +198,8 @@ public class ListBooksForm extends JFrame {
         String edition = (String) tableModel.getValueAt(selectedRow, 3);
 
         // Open update form with selected book data
-        UpdateBookForm updateBookForm = new UpdateBookForm(bookId, bookName, author, edition, new ListBooksForm());
+        UpdateBookForm updateBookForm = new UpdateBookForm(bookId, bookName, author, edition, this);
         updateBookForm.setVisible(true);
-    }
-
-    private void bookTableMouseClicked(java.awt.event.MouseEvent evt) {
-        // Handle events on book table (if needed)
     }
 
     private void logout() {

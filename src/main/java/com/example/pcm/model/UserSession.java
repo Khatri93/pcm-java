@@ -2,11 +2,12 @@ package com.example.pcm.model;
 
 public class UserSession {
     private static UserSession instance;
-    private String username;
     private boolean loggedIn;
+    private String username;
+    private String role;
 
     private UserSession() {
-        this.loggedIn = false;
+        // private constructor to enforce singleton pattern
     }
 
     public static UserSession getInstance() {
@@ -16,14 +17,16 @@ public class UserSession {
         return instance;
     }
 
-    public void login(String username) {
-        this.username = username;
+    public void login(String username, String role) {
         this.loggedIn = true;
+        this.username = username;
+        this.role = role;
     }
 
     public void logout() {
-        this.username = null;
         this.loggedIn = false;
+        this.username = null;
+        this.role = null;
     }
 
     public boolean isLoggedIn() {
@@ -32,5 +35,9 @@ public class UserSession {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getRole() {
+        return role;
     }
 }

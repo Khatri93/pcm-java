@@ -35,17 +35,8 @@ public class BookService {
         }
     }
 
-    public void deleteBookByName(String name) throws SQLException {
-        String sql = "DELETE FROM books WHERE name = ?";
-        try (Connection connection = DataSourceProvider.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
-        }
-    }
-
     public List<Book> getAllBooks() throws SQLException {
-        String sql = "SELECT * FROM books";
+        String sql = "SELECT * FROM books order by id asc";
         List<Book> books = new ArrayList<>();
         try (Connection connection = DataSourceProvider.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -69,6 +60,44 @@ public class BookService {
             statement.setInt(1, id);
             statement.executeUpdate();
         }
+    }
+
+    public Book getBookById(int id) throws SQLException {
+        String sql = "SELECT * FROM books WHERE id = ?";
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Book book = new Book();
+                book.setId(resultSet.getInt("id"));
+                book.setName(resultSet.getString("name"));
+                book.setAuthor(resultSet.getString("author"));
+                book.setEdition(resultSet.getString("edition"));
+                System.out.println(book);
+                return book;
+            }
+        }
+        return null;
+    }
+
+    public Book getBookByName(String name) throws SQLException {
+        String sql = "SELECT * FROM books WHERE name = ?";
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                Book book = new Book();
+                book.setId(resultSet.getInt("id"));
+                book.setName(resultSet.getString("name"));
+                book.setAuthor(resultSet.getString("author"));
+                book.setEdition(resultSet.getString("edition"));
+                System.out.println(book);
+                return book;
+            }
+        }
+        return null;
     }
 }
 

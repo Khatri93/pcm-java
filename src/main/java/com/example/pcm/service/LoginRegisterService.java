@@ -12,8 +12,8 @@ public class LoginRegisterService {
 
     public void registerUser(Users user) throws SQLException {
         String sql = "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)";
-        try(Connection connection = DataSourceProvider.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = DataSourceProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getPassword());
             statement.setString(3, user.getEmail());
@@ -22,7 +22,7 @@ public class LoginRegisterService {
         }
     }
 
-    public boolean loginUser(String username, String password) {
+    public Users loginUser(String username, String password) {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (Connection conn = DataSourceProvider.getConnection();
@@ -32,10 +32,20 @@ public class LoginRegisterService {
             stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
 
-            return rs.next();
+            if (rs.next()) {
+                Users user = new Users();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                return user;
+            } else {
+                return null;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 }
