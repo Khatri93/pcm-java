@@ -20,6 +20,8 @@ public class ListBooksForm extends JFrame {
     private JButton updateButton;
     private JButton refreshButton;
     private JButton logoutButton;
+    private JButton borrowButton;
+    private JButton returnButton;
 
     public ListBooksForm() {
         setTitle("List of Books");
@@ -36,7 +38,7 @@ public class ListBooksForm extends JFrame {
     }
 
     private void initComponents() {
-        String[] columnNames = {"ID", "Name", "Author", "Edition"};
+        String[] columnNames = {"ID", "Name", "Author", "Edition", "Total", "Available"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -78,7 +80,7 @@ public class ListBooksForm extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
 
         // Button panel customization
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 5, 10, 10));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 7, 10, 10));
         buttonPanel.setBackground(new Color(245, 245, 245)); // Light grey panel background
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Padding around the panel
 
@@ -88,7 +90,7 @@ public class ListBooksForm extends JFrame {
         buttonPanel.add(refreshButton);
 
         // Delete Button
-        deleteButton = createButton("Delete Selected Book", new Color(255, 69, 0)); // Red
+        deleteButton = createButton("Delete Selected Book", new Color(255, 174, 0)); // Red
         deleteButton.addActionListener(e -> deleteSelectedBook());
         buttonPanel.add(deleteButton);
 
@@ -97,8 +99,18 @@ public class ListBooksForm extends JFrame {
         updateButton.addActionListener(e -> updateSelectedBook());
         buttonPanel.add(updateButton);
 
+        // Borrow Button
+        borrowButton = createButton("Borrow Book", new Color(123, 104, 238)); // Medium Slate Blue
+        borrowButton.addActionListener(e -> borrowSelectedBook());
+        buttonPanel.add(borrowButton);
+
+        // Return Button
+        returnButton = createButton("Return Book", new Color(238, 130, 238)); // Violet
+        returnButton.addActionListener(e -> returnSelectedBook());
+        buttonPanel.add(returnButton);
+
         // Back Button
-        JButton backButton = createButton("Back", new Color(123, 104, 238)); // Medium Slate Blue
+        JButton backButton = createButton("Back", new Color(255, 165, 0)); // Orange
         backButton.addActionListener(e -> {
             new BookManagementForm().setVisible(true);
             dispose();
@@ -106,7 +118,7 @@ public class ListBooksForm extends JFrame {
         buttonPanel.add(backButton);
 
         // Logout Button
-        logoutButton = createButton("Logout", new Color(255, 69, 0)); // Red
+        logoutButton = createButton("Logout", new Color(255, 0, 0)); // Red
         logoutButton.addActionListener(e -> logout());
         buttonPanel.add(logoutButton);
 
@@ -148,7 +160,9 @@ public class ListBooksForm extends JFrame {
                         book.getId(),
                         book.getName(),
                         book.getAuthor(),
-                        book.getEdition()
+                        book.getEdition(),
+                        book.getTotal(),
+                        book.getAvailable()
                 };
                 tableModel.addRow(rowData);
             }
@@ -170,6 +184,7 @@ public class ListBooksForm extends JFrame {
         }
 
         int bookId = (int) tableModel.getValueAt(selectedRow, 0);
+
         try {
             bookService.deleteBook(bookId);
             JOptionPane.showMessageDialog(this, "Book deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -196,10 +211,70 @@ public class ListBooksForm extends JFrame {
         String bookName = (String) tableModel.getValueAt(selectedRow, 1);
         String author = (String) tableModel.getValueAt(selectedRow, 2);
         String edition = (String) tableModel.getValueAt(selectedRow, 3);
+        int total = (int) tableModel.getValueAt(selectedRow, 4);
+        int available = (int) tableModel.getValueAt(selectedRow, 5);
 
         // Open update form with selected book data
-        UpdateBookForm updateBookForm = new UpdateBookForm(bookId, bookName, author, edition, this);
+        UpdateBookForm updateBookForm = new UpdateBookForm(bookId, bookName, author, edition, total, available, this);
         updateBookForm.setVisible(true);
+    }
+
+    private void borrowSelectedBook() {
+        int selectedRow = bookTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a book to borrow.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int bookId = (int) tableModel.getValueAt(selectedRow, 0);
+        int availableCopies = (int) tableModel.getValueAt(selectedRow, 5);
+        if (availableCopies == 0) {
+            JOptionPane.showMessageDialog(this, "No copies available to borrow.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check if the current user is an admin
+        if ("Admin".equals(UserSession.getInstance().getRole())) {
+            String username = JOptionPane.showInputDialog(this, "Enter the username to borrow the book for:", "Borrow Book for User", JOptionPane.QUESTION_MESSAGE);
+            if (username == null || username.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Username cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                bookService.borrowBookForUser(bookId, username);
+                JOptionPane.showMessageDialog(this, "Book borrowed successfully for user " + username + "!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadBookData(); // Refresh the table data
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error borrowing book: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            try {
+                bookService.borrowBook(bookId);
+                JOptionPane.showMessageDialog(this, "Book borrowed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadBookData(); // Refresh the table data
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error borrowing book: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void returnSelectedBook() {
+        int selectedRow = bookTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a book to return.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int bookId = (int) tableModel.getValueAt(selectedRow, 0);
+
+        try {
+            bookService.returnBook(bookId);
+            JOptionPane.showMessageDialog(this, "Book returned successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            loadBookData(); // Refresh the table data
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error returning book: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void logout() {

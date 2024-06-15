@@ -13,24 +13,28 @@ import java.util.List;
 public class BookService {
 
     public void addBook(Book book) throws SQLException {
-        String sql = "INSERT INTO books (name, author, edition) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO books (name, author, edition, total, available) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = DataSourceProvider.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getName());
             statement.setString(2, book.getAuthor());
             statement.setString(3, book.getEdition());
+            statement.setInt(4, book.getTotal());
+            statement.setInt(5, book.getAvailable());
             statement.executeUpdate();
         }
     }
 
     public void updateBook(Book book) throws SQLException {
-        String sql = "UPDATE books SET name = ?, author = ?, edition = ? WHERE id = ?";
+        String sql = "UPDATE books SET name = ?, author = ?, edition = ?, total = ?, available = ? WHERE id = ?";
         try (Connection connection = DataSourceProvider.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getName());
             statement.setString(2, book.getAuthor());
             statement.setString(3, book.getEdition());
-            statement.setInt(4, book.getId());
+            statement.setInt(4, book.getTotal());
+            statement.setInt(5, book.getAvailable());
+            statement.setInt(6, book.getId());
             statement.executeUpdate();
         }
     }
@@ -47,6 +51,8 @@ public class BookService {
                 book.setName(resultSet.getString("name"));
                 book.setAuthor(resultSet.getString("author"));
                 book.setEdition(resultSet.getString("edition"));
+                book.setTotal(resultSet.getInt("total"));
+                book.setAvailable(resultSet.getInt("available"));
                 books.add(book);
             }
             return books;
@@ -74,6 +80,8 @@ public class BookService {
                 book.setName(resultSet.getString("name"));
                 book.setAuthor(resultSet.getString("author"));
                 book.setEdition(resultSet.getString("edition"));
+                book.setTotal(resultSet.getInt("total"));
+                book.setAvailable(resultSet.getInt("available"));
                 System.out.println(book);
                 return book;
             }
@@ -93,6 +101,8 @@ public class BookService {
                 book.setName(resultSet.getString("name"));
                 book.setAuthor(resultSet.getString("author"));
                 book.setEdition(resultSet.getString("edition"));
+                book.setTotal(resultSet.getInt("total"));
+                book.setAvailable(resultSet.getInt("available"));
                 System.out.println(book);
                 return book;
             }

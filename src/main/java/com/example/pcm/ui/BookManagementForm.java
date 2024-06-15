@@ -14,6 +14,8 @@ public class BookManagementForm extends JFrame {
     private JTextField booknameField;
     private JTextField authorField;
     private JComboBox<Integer> editionComboBox;
+    private JTextField totalField;
+    private JTextField availableField;
     private JButton addButton;
     private JButton listButton;
     private JButton logoutButton;
@@ -78,46 +80,61 @@ public class BookManagementForm extends JFrame {
         gbc.gridx = 1;
         mainPanel.add(editionComboBox, gbc);
 
+        // Total Field
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        mainPanel.add(createLabel("Total Copies:", new Color(25, 25, 112)), gbc); // Midnight Blue
+        totalField = createTextField();
+        gbc.gridx = 1;
+        mainPanel.add(totalField, gbc);
+
+        // Available Field
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        mainPanel.add(createLabel("Available Copies:", new Color(25, 25, 112)), gbc); // Midnight Blue
+        availableField = createTextField();
+        gbc.gridx = 1;
+        mainPanel.add(availableField, gbc);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        buttonPanel.setBackground(new Color(245, 245, 245)); // Light Gray background
+        GridBagConstraints buttonGbc = new GridBagConstraints();
+        buttonGbc.insets = new Insets(5, 5, 5, 5);
+
         // Add Book Button
         addButton = createButton("Add Book", new Color(60, 179, 113)); // Medium Sea Green
         addButton.addActionListener(e -> addBook());
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        mainPanel.add(addButton, gbc);
+        buttonGbc.gridx = 0;
+        buttonGbc.gridy = 0;
+        buttonPanel.add(addButton, buttonGbc);
 
         // List Books Button
         listButton = createButton("List Books", new Color(70, 130, 180)); // Steel Blue
         listButton.addActionListener(e -> listBooks());
-        gbc.gridy = 5;
-        mainPanel.add(listButton, gbc);
+        buttonGbc.gridx = 1;
+        buttonPanel.add(listButton, buttonGbc);
 
         // Conditional User List Button for Admins
         if ("Admin".equals(UserSession.getInstance().getRole())) {
-            userListButton = createButton("User List", new Color(0, 149, 255)); // Red-Orange for Admin access
+            userListButton = createButton("User List", new Color(0, 149, 255)); // Deep Sky Blue
             userListButton.addActionListener(e -> showUserList());
-            gbc.gridy = 6;
-            mainPanel.add(userListButton, gbc);
+            buttonGbc.gridx = 2;
+            buttonPanel.add(userListButton, buttonGbc);
         }
 
-        // Back Button
-        JButton backButton = createButton("Back", new Color(123, 104, 238)); // Medium Slate Blue
-        backButton.addActionListener(e -> {
-            new ListBooksForm().setVisible(true);
-            dispose();
-        });
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(backButton, gbc);
-
         // Logout Button
-        logoutButton = createButton("Logout", new Color(255, 69, 0)); // Red
+        logoutButton = createButton("Logout", new Color(255, 69, 0)); // Orange Red
         logoutButton.addActionListener(e -> logout());
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        mainPanel.add(logoutButton, gbc);
+        buttonGbc.gridx = 3;
+        buttonPanel.add(logoutButton, buttonGbc);
+
+        // Adding the button panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        mainPanel.add(buttonPanel, gbc);
 
         add(mainPanel);
     }
@@ -147,6 +164,18 @@ public class BookManagementForm extends JFrame {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
         button.setPreferredSize(new Dimension(150, 30)); // Preferred size to ensure visibility
+
+        // Adding hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(color.brighter());
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(color);
+            }
+        });
+
         return button;
     }
 
@@ -170,6 +199,8 @@ public class BookManagementForm extends JFrame {
         String name = booknameField.getText();
         String author = authorField.getText();
         Object selectedEditionObject = editionComboBox.getSelectedItem();
+        String totalText = totalField.getText();
+        String availableText = availableField.getText();
 
         if (selectedEditionObject == null) {
             JOptionPane.showMessageDialog(this, "Please select an edition.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -177,14 +208,26 @@ public class BookManagementForm extends JFrame {
         }
 
         int edition = (int) selectedEditionObject;
+        int total, available;
+
+        try {
+            total = Integer.parseInt(totalText);
+            available = Integer.parseInt(availableText);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Total and Available copies must be numbers.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
 
         if (name.isEmpty() || author.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
+
         book.setName(name);
         book.setAuthor(author);
         book.setEdition(String.valueOf(edition));
+        book.setTotal(total);
+        book.setAvailable(available);
         return true;
     }
 
@@ -208,12 +251,7 @@ public class BookManagementForm extends JFrame {
         booknameField.setText("");
         authorField.setText("");
         editionComboBox.setSelectedIndex(0);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            BookManagementForm form = new BookManagementForm();
-            form.setVisible(true);
-        });
+        totalField.setText("");
+        availableField.setText("");
     }
 }

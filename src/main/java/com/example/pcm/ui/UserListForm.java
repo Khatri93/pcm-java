@@ -16,6 +16,8 @@ public class UserListForm extends JFrame {
     private DefaultTableModel tableModel;
     private JButton backButton;
     private JButton logoutButton;
+    private JButton deleteButton;
+    private JButton updateButton;
 
     public UserListForm() {
         if (!UserSession.getInstance().isLoggedIn() || !UserSession.getInstance().getRole().equals("Admin")) {
@@ -56,7 +58,7 @@ public class UserListForm extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
 
         // Button panel setup
-        JPanel buttonPanel = new JPanel(new BorderLayout());
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         buttonPanel.setBackground(new Color(245, 245, 245)); // WhiteSmoke color
 
         // Back Button
@@ -67,14 +69,34 @@ public class UserListForm extends JFrame {
             new BookManagementForm().setVisible(true); // Open BookManagementForm
             dispose(); // Dispose current form
         });
-        buttonPanel.add(backButton, BorderLayout.WEST);
+        buttonPanel.add(backButton);
 
         // Logout Button
         logoutButton = new JButton("Logout");
         logoutButton.setBackground(new Color(255, 182, 193)); // LightPink color
         logoutButton.setForeground(Color.BLACK);
         logoutButton.addActionListener(e -> logout());
-        buttonPanel.add(logoutButton, BorderLayout.EAST);
+        buttonPanel.add(logoutButton);
+
+        // Delete Button
+        deleteButton = new JButton("Delete");
+        deleteButton.setBackground(new Color(255, 99, 71)); // Tomato color
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.addActionListener(e -> deleteUser());
+        buttonPanel.add(deleteButton);
+
+        // Update Button
+        updateButton = new JButton("Update");
+        updateButton.setBackground(new Color(135, 206, 235)); // SkyBlue color
+        updateButton.setForeground(Color.BLACK);
+        updateButton.addActionListener(e -> {
+            try {
+                updateUser();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        buttonPanel.add(updateButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
     }
@@ -94,6 +116,60 @@ public class UserListForm extends JFrame {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error loading users: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void deleteUser() {
+        int selectedRow = userTable.getSelectedRow();
+        if (selectedRow != -1) {
+            int userId = (int) tableModel.getValueAt(selectedRow, 0);
+            try {
+                userService.deleteUser(userId);
+                tableModel.removeRow(selectedRow);
+                JOptionPane.showMessageDialog(this, "User deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error deleting user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a user to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void updateUser() throws SQLException {
+        int selectedRow = userTable.getSelectedRow();
+        if (selectedRow != -1) {
+            int userId = (int) tableModel.getValueAt(selectedRow, 0);
+            String username = (String) tableModel.getValueAt(selectedRow, 1);
+            String email = (String) tableModel.getValueAt(selectedRow, 2);
+            String role = (String) tableModel.getValueAt(selectedRow, 3);
+
+            String newUsername = JOptionPane.showInputDialog(this, "Enter new username:", username);
+            String newEmail = JOptionPane.showInputDialog(this, "Enter new email:", email);
+            String[] roles = {"Admin", "User"};
+            String newRole = (String) JOptionPane.showInputDialog(this, "Select new role:", "Update Role",
+                    JOptionPane.QUESTION_MESSAGE, null, roles, role);
+
+            String password = JOptionPane.showInputDialog(this, "Enter new password:");
+
+            Users user = userService.getUserById(userId);
+            user.setUsername(newUsername);
+            user.setEmail(newEmail);
+            user.setRole(newRole);
+            user.setPassword(password);
+
+            if (newUsername == null && newEmail == null && newRole == null && password == null) {
+                JOptionPane.showMessageDialog(this, "Please select a user to update.", "Warning", JOptionPane.WARNING_MESSAGE);
+            } else {
+                try {
+                    userService.updateUser(user);
+                    tableModel.setValueAt(newUsername, selectedRow, 1);
+                    tableModel.setValueAt(newEmail, selectedRow, 2);
+                    tableModel.setValueAt(newRole, selectedRow, 3);
+                    JOptionPane.showMessageDialog(this, "User updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(this, "Error updating user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 

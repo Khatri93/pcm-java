@@ -13,24 +13,26 @@ public class UpdateBookForm extends JFrame {
     private JTextField bookNameField;
     private JTextField authorField;
     private JComboBox<Integer> editionComboBox;
+    private JTextField totalField;
+    private JTextField availableField;
     private JButton updateButton;
     private int bookId;
 
-    public UpdateBookForm(int bookId, String bookName, String author, String edition, ListBooksForm listBooksForm) {
+    public UpdateBookForm(int bookId, String bookName, String author, String edition, int total, int available, ListBooksForm listBooksForm) {
         this.bookId = bookId;
         this.listBooksForm = listBooksForm; // Store reference to ListBooksForm
 
         setTitle("Update Book");
-        setSize(400, 300);
+        setSize(400, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         bookService = new BookService();
 
-        initComponents(bookName, author, edition, bookId);
+        initComponents(bookName, author, edition, total, available);
     }
 
-    private void initComponents(String bookName, String author, String edition, int id) {
+    private void initComponents(String bookName, String author, String edition, int total, int available) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(240, 248, 255)); // Light blue background
         GridBagConstraints gbc = new GridBagConstraints();
@@ -64,6 +66,24 @@ public class UpdateBookForm extends JFrame {
         gbc.gridx = 1;
         panel.add(editionComboBox, gbc);
 
+        // Total Copies Field
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(new JLabel("Total Copies:"), gbc);
+        totalField = new JTextField(20);
+        totalField.setText(String.valueOf(total)); // Set initial value
+        gbc.gridx = 1;
+        panel.add(totalField, gbc);
+
+        // Available Copies Field
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(new JLabel("Available Copies:"), gbc);
+        availableField = new JTextField(20);
+        availableField.setText(String.valueOf(available)); // Set initial value
+        gbc.gridx = 1;
+        panel.add(availableField, gbc);
+
         // Update Button
         updateButton = new JButton("Update");
         updateButton.setBackground(new Color(70, 130, 180)); // Steel blue background
@@ -76,7 +96,7 @@ public class UpdateBookForm extends JFrame {
             }
         });
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 5;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(20, 0, 0, 0); // Larger top margin
         panel.add(updateButton, gbc);
@@ -96,6 +116,16 @@ public class UpdateBookForm extends JFrame {
         String author = authorField.getText();
         String name = bookNameField.getText();
         Object selectedEditionObject = editionComboBox.getSelectedItem();
+        int total;
+        int available;
+
+        try {
+            total = Integer.parseInt(totalField.getText());
+            available = Integer.parseInt(availableField.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Total and Available must be numeric values.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         if (selectedEditionObject != null) {
             int edition = (int) selectedEditionObject;
@@ -109,6 +139,9 @@ public class UpdateBookForm extends JFrame {
         if (!author.isEmpty()) {
             book.setAuthor(author);
         }
+
+        book.setTotal(total);
+        book.setAvailable(available);
 
         bookService.updateBook(book);
         JOptionPane.showMessageDialog(this, "Book updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);

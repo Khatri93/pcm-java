@@ -6,6 +6,8 @@ public class Book {
     private String name;
     private String author;
     private String Edition;
+    private int total;
+    private int available;
 
     public int getId() {
         return id;
@@ -37,5 +39,21 @@ public class Book {
 
     public void setEdition(String edition) {
         Edition = edition;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(int available) {
+        this.available = available;
     }
 }
